@@ -4,6 +4,7 @@ import TrustBar from '@/components/TrustBar.astro';
 import HowItWorks from '@/components/HowItWorks.astro';
 import ProductCard from '@/components/ProductCard.astro';
 import QuickBook from '@/components/QuickBook.astro';
+import FAQ from '@/components/FAQ.astro';
 import { useTranslations, localizedPath, locales, defaultLang, type Lang } from '@/i18n/utils';
 import { getProductsByMode, eur } from '@/lib/products';
 import { whatsappLink } from '@/lib/site';
@@ -183,6 +184,8 @@ const split = splitByLang[lang] ?? splitByLang.es;
       ))}
     </div>
   </section>
+
+  <FAQ lang={lang} />
 
   <HowItWorks lang={lang} />
 </Base>

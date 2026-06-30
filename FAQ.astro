@@ -1,0 +1,72 @@
+---
+import type { Lang } from '@/i18n/utils';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const titleByLang: Record<string, string> = {
+  es: 'Preguntas frecuentes', en: 'Frequently asked questions', de: 'Häufige Fragen', ru: 'Частые вопросы',
+};
+const title = titleByLang[lang] ?? titleByLang.es;
+
+const faqByLang: Record<string, { q: string; a: string }[]> = {
+  es: [
+    { q: '¿Cuánto es el depósito?', a: 'Solo 100 € — de los más bajos de la zona. Se devuelve al entregar la tabla en buen estado.' },
+    { q: '¿Hacéis entrega?', a: 'Sí, entrega gratuita en toda la Costa Blanca (de Altea a Gandía: Calpe, Benissa, Moraira, Jávea, Dénia, Oliva). También puedes recoger en Dénia.' },
+    { q: '¿Qué incluye el alquiler?', a: 'Tabla, remo, hinchador, leash (correa) y mochila de transporte. Todo listo para remar.' },
+    { q: '¿Cómo reservo?', a: 'Por WhatsApp, sin registro. Elige tabla y días en la web, te llega el precio listo y confirmamos disponibilidad al momento.' },
+    { q: '¿En qué idiomas atendéis?', a: 'Español, inglés, alemán y ruso.' },
+    { q: '¿Puedo comprar una tabla?', a: 'Sí. Tablas nuevas con equipo completo desde 190 €.' },
+  ],
+  en: [
+    { q: 'How much is the deposit?', a: 'Just €100 — one of the lowest in the area. Refunded when you return the board in good condition.' },
+    { q: 'Do you deliver?', a: 'Yes, free delivery across the Costa Blanca (Altea to Gandía: Calpe, Benissa, Moraira, Jávea, Dénia, Oliva). You can also pick up in Dénia.' },
+    { q: 'What does the rental include?', a: 'Board, paddle, pump, leash and a carry backpack. Everything ready to paddle.' },
+    { q: 'How do I book?', a: 'By WhatsApp, no sign-up. Pick a board and days on the site, get the ready price, and we confirm availability right away.' },
+    { q: 'Which languages do you speak?', a: 'Spanish, English, German and Russian.' },
+    { q: 'Can I buy a board?', a: 'Yes. Brand-new boards with full kit from €190.' },
+  ],
+  de: [
+    { q: 'Wie hoch ist die Kaution?', a: 'Nur 100 € — eine der niedrigsten der Region. Rückerstattung bei Rückgabe des Boards in gutem Zustand.' },
+    { q: 'Liefert ihr?', a: 'Ja, kostenlose Lieferung an der ganzen Costa Blanca (Altea bis Gandía: Calpe, Benissa, Moraira, Jávea, Dénia, Oliva). Abholung in Dénia ist auch möglich.' },
+    { q: 'Was ist bei der Miete dabei?', a: 'Board, Paddel, Pumpe, Leash und Transportrucksack. Alles bereit zum Paddeln.' },
+    { q: 'Wie buche ich?', a: 'Per WhatsApp, ohne Anmeldung. Board und Tage auf der Website wählen, den fertigen Preis erhalten — wir bestätigen die Verfügbarkeit sofort.' },
+    { q: 'Welche Sprachen sprecht ihr?', a: 'Spanisch, Englisch, Deutsch und Russisch.' },
+    { q: 'Kann ich ein Board kaufen?', a: 'Ja. Neue Boards mit komplettem Set ab 190 €.' },
+  ],
+  ru: [
+    { q: 'Какой залог?', a: 'Всего 100 € — один из самых низких в районе. Возвращается при сдаче доски в хорошем состоянии.' },
+    { q: 'Есть доставка?', a: 'Да, бесплатная доставка по всей Коста-Бланке (от Альтеи до Гандии: Кальпе, Бениса, Морайра, Хавеа, Дения, Олива). Можно и забрать в Дении.' },
+    { q: 'Что входит в аренду?', a: 'Доска, весло, насос, лиш (страховочный трос) и рюкзак для переноски. Всё готово к выходу на воду.' },
+    { q: 'Как забронировать?', a: 'Через WhatsApp, без регистрации. Выберите доску и дни на сайте — придёт готовая цена, доступность подтверждаем сразу.' },
+    { q: 'На каких языках общаетесь?', a: 'Испанский, английский, немецкий и русский.' },
+    { q: 'Можно купить доску?', a: 'Да. Новые доски с полным комплектом от 190 €.' },
+  ],
+};
+const faqs = faqByLang[lang] ?? faqByLang.es;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<section class="container-page py-12">
+  <h2 class="mb-6 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{title}</h2>
+  <div class="mx-auto max-w-3xl divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-white">
+    {faqs.map((f) => (
+      <details class="group p-5">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink">
+          <span>{f.q}</span>
+          <svg class="shrink-0 text-sea-600 transition group-open:rotate-45" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </summary>
+        <p class="mt-3 text-ink-soft">{f.a}</p>
+      </details>
+    ))}
+  </div>
+</section>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
