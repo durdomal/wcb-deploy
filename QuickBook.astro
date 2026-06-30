@@ -1,0 +1,94 @@
+---
+import { site } from '@/lib/site';
+import type { Lang } from '@/i18n/utils';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const dict: Record<string, { title: string; sub: string; board: string; days: string; total: string; deposit: string; cta: string; note: string; week: string }> = {
+  es: { title: 'Reserva en 10 segundos', sub: 'Elige tabla y días — te llevamos el precio listo a WhatsApp.', board: 'Elige tu tabla', days: 'Días', total: 'Total estimado', deposit: 'depósito', cta: 'Reservar por WhatsApp', note: 'Sin registro · Respuesta rápida · Entrega gratis en la Costa Blanca', week: 'semana' },
+  en: { title: 'Book in 10 seconds', sub: 'Pick a board and days — we send the ready price to WhatsApp.', board: 'Choose your board', days: 'Days', total: 'Estimated total', deposit: 'deposit', cta: 'Book on WhatsApp', note: 'No sign-up · Fast reply · Free delivery across the Costa Blanca', week: 'week' },
+  de: { title: 'In 10 Sekunden buchen', sub: 'Board und Tage wählen — wir schicken den Preis direkt zu WhatsApp.', board: 'Board wählen', days: 'Tage', total: 'Geschätzt', deposit: 'Kaution', cta: 'Per WhatsApp buchen', note: 'Ohne Anmeldung · Schnelle Antwort · Gratis Lieferung an der Costa Blanca', week: 'Woche' },
+  ru: { title: 'Бронь за 10 секунд', sub: 'Выбери доску и дни — пришлём готовую цену в WhatsApp.', board: 'Выбери доску', days: 'Дни', total: 'Итого', deposit: 'залог', cta: 'Забронировать в WhatsApp', note: 'Без регистрации · Быстрый ответ · Доставка бесплатно по Коста-Бланке', week: 'неделя' },
+};
+const t = dict[lang] ?? dict.es;
+
+const boardsByLang: Record<string, string[]> = {
+  es: ['Pink', 'Azul claro', 'Azul oscuro', 'Blanco y púrpura'],
+  en: ['Pink', 'Light Blue', 'Dark Blue', 'White & Purple'],
+  de: ['Pink', 'Hellblau', 'Dunkelblau', 'Weiß-Violett'],
+  ru: ['Розовая', 'Светло-голубая', 'Тёмно-синяя', 'Бело-фиолетовая'],
+};
+const boards = boardsByLang[lang] ?? boardsByLang.es;
+
+const dayWordByLang: Record<string, [string, string]> = {
+  es: ['día', 'días'], en: ['day', 'days'], de: ['Tag', 'Tage'], ru: ['день', 'дней'],
+};
+const dayWord = dayWordByLang[lang] ?? dayWordByLang.es;
+
+const prices: Record<number, number> = { 1: 35, 2: 60, 3: 75, 4: 100, 5: 125, 6: 150, 7: 140 };
+const deposit = site.rental.depositEur;
+const waBase = `https://wa.me/${site.whatsapp}?text=`;
+
+const msgByLang: Record<string, string> = {
+  es: '¡Hola! Quiero reservar la tabla {board} para {days}. Total estimado: {price} € + {deposit} € de depósito. ¿Tenéis disponibilidad?',
+  en: 'Hi! I would like to book the {board} board for {days}. Estimated total: {price} € + {deposit} € deposit. Do you have availability?',
+  de: 'Hallo! Ich möchte das {board}-Board für {days} mieten. Geschätzt: {price} € + {deposit} € Kaution. Habt ihr Verfügbarkeit?',
+  ru: 'Здравствуйте! Хочу забронировать доску {board} на {days}. Итого: {price} € + залог {deposit} €. Есть свободные даты?',
+};
+const msgTpl = msgByLang[lang] ?? msgByLang.es;
+---
+<section id="reservar" class="container-page py-10">
+  <div class="mx-auto max-w-3xl rounded-3xl border border-ink/10 bg-gradient-to-br from-sea-50 to-white p-6 shadow-lg sm:p-8">
+    <h2 class="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{t.title}</h2>
+    <p class="mt-2 text-ink-soft">{t.sub}</p>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      <label class="block">
+        <span class="mb-1 block text-sm font-semibold text-ink-soft">{t.board}</span>
+        <select id="qb-board" class="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-base font-medium text-ink focus:border-sea-500 focus:outline-none">
+          {boards.map((b, i) => <option value={i}>{b}</option>)}
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-1 block text-sm font-semibold text-ink-soft">{t.days}</span>
+        <select id="qb-days" class="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-base font-medium text-ink focus:border-sea-500 focus:outline-none">
+          {[1, 2, 3, 4, 5, 6, 7].map((d) => <option value={d}>{d} {d === 1 ? dayWord[0] : dayWord[1]}{d === 7 ? ` · ${t.week}` : ''}</option>)}
+        </select>
+      </label>
+    </div>
+    <div class="mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <p class="text-ink">
+        <span class="text-sm text-ink-soft">{t.total}: </span>
+        <span id="qb-price" class="text-2xl font-extrabold text-sea-600">35 €</span>
+        <span class="text-sm text-ink-soft"> + {deposit} € {t.deposit}</span>
+      </p>
+      <a id="qb-wa" href="#" target="_blank" rel="noopener"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-7 py-3.5 text-base font-bold text-white shadow-md transition hover:brightness-95 sm:w-auto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.157 5.335 5.493 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.737-.979z"/></svg>
+        {t.cta}
+      </a>
+    </div>
+    <p class="mt-3 text-xs text-ink-soft">{t.note}</p>
+  </div>
+</section>
+<script define:vars={{ prices, waBase, deposit, msgTpl, boards, dayWord, weekWord: t.week }}>
+  (function () {
+    const bs = document.getElementById('qb-board');
+    const ds = document.getElementById('qb-days');
+    const pe = document.getElementById('qb-price');
+    const wa = document.getElementById('qb-wa');
+    if (!bs || !ds || !pe || !wa) return;
+    function fmt(d) { return d + ' ' + (d === 1 ? dayWord[0] : dayWord[1]) + (d === 7 ? ' (' + weekWord + ')' : ''); }
+    function update() {
+      const d = parseInt(ds.value, 10);
+      const price = prices[d] || 0;
+      const board = boards[parseInt(bs.value, 10)] || boards[0];
+      pe.textContent = price + ' €';
+      const msg = msgTpl.replace('{board}', board).replace('{days}', fmt(d)).replace('{price}', price).replace('{deposit}', deposit);
+      wa.href = waBase + encodeURIComponent(msg);
+    }
+    bs.addEventListener('change', update);
+    ds.addEventListener('change', update);
+    update();
+  })();
+</script>
